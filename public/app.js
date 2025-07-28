@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showLoading();
 
     try {
-      const response = await fetch('/api/generate-website', {
+      const response = await fetch('api/generate-website', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
