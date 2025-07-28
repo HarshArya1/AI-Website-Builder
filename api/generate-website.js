@@ -15,31 +15,22 @@ You are an expert AI agent specializing in automated frontend web development. Y
 5. Add animations and interactive elements
 
 <-- REQUIRED OUTPUT FORMAT -->
-Return a JSON object with:
+Return STRICTLY ONLY a JSON object with this EXACT structure:
 {
   "htmlContent": "<!DOCTYPE html>...",
   "cssContent": "/* CSS */",
   "jsContent": "// JavaScript",
-  "reactComponents": [
-    {
-      "name": "Header.jsx",
-      "content": "import React from 'react';..."
-    }
-  ],
-  "reduxFiles": [
-    {
-      "name": "store.js",
-      "content": "import { configureStore } from '@reduxjs/toolkit';..."
-    }
-  ],
-  "projectStructure": "Project files created successfully"
+  "reactComponents": [],
+  "reduxFiles": [],
+  "projectStructure": "Description"
 }
 
-<-- IMPORTANT RULES -->
-1. ALWAYS return valid JSON - no additional text before or after
-2. If you encounter an error, return: { "error": "description" }
-3. Use double quotes for all JSON properties
-4. Escape special characters properly
+<-- CRITICAL RULES -->
+1. NEVER include markdown syntax (no \`\`\`json)
+2. NEVER add explanations before/after the JSON
+3. ALWAYS escape special characters in strings
+4. If unsure about content, return empty strings/arrays
+5. If error occurs, return: { "error": "description" }
 `;
 
 export default async (req, res) => {
@@ -59,9 +50,18 @@ export default async (req, res) => {
   }
 
   try {
+    // Validate request body
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
     const { prompt } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+    
+    // Validate prompt
+    if (!prompt || typeof prompt !== 'string' || prompt.length > 1000) {
+      return res.status(400).json({ 
+        error: 'Prompt must be a string (max 1000 characters)' 
+      });
     }
 
     const model = ai.getGenerativeModel({
@@ -69,32 +69,48 @@ export default async (req, res) => {
       systemInstruction: ENHANCED_INSTRUCTIONS,
     });
 
-    const result = await model.generateContent(`
-      Generate website based on the following prompt:
-      "${prompt}"
-      
-      IMPORTANT: Return ONLY valid JSON in the required format. No additional text.
-    `);
+    // Generate content with strict instructions
+    const result = await model.generateContent({
+      contents: [{
+        role: 'user',
+        parts: [{
+          text: `Generate website code in EXACT required JSON format for: ${prompt}`
+        }]
+      }]
+    });
     
     const response = result.response;
     const text = response.text();
     
-    // Clean the response
-    let cleanedText = text.trim();
+    // More robust JSON extraction
+    const jsonStart = Math.max(
+      text.indexOf('{'),
+      text.indexOf('[')
+    );
     
-    // Remove markdown code blocks
-    if (cleanedText.startsWith('```json')) {
-      cleanedText = cleanedText.slice(7);
+    const jsonEnd = Math.max(
+      text.lastIndexOf('}'),
+      text.lastIndexOf(']')
+    ) + 1;
+    
+    if (jsonStart === -1 || jsonEnd === 0) {
+      throw new Error('No valid JSON found in response');
     }
-    if (cleanedText.endsWith('```')) {
-      cleanedText = cleanedText.slice(0, -3);
+    
+    const jsonString = text.slice(jsonStart, jsonEnd);
+    const parsedResponse = JSON.parse(jsonString);
+    
+    // Validate response structure
+    if (parsedResponse.error) {
+      return res.status(400).json(parsedResponse);
     }
     
-    // Parse the JSON response
-    const parsedResponse = JSON.parse(cleanedText);
-    
-    // Return the successful response
-    res.status(200).json({
+    if (!parsedResponse.htmlContent) {
+      throw new Error('Invalid response format from AI');
+    }
+
+    // Successful response
+    return res.status(200).json({
       ...parsedResponse,
       projectId: uuidv4(),
       timestamp: new Date().toISOString()
@@ -102,10 +118,19 @@ export default async (req, res) => {
     
   } catch (error) {
     console.error("Generation error:", error);
-    res.status(500).json({ 
-      error: "Website generation failed", 
+    
+    // More specific error handling
+    const errorResponse = {
+      error: "Website generation failed",
       details: error.message,
-      type: "JSON_PARSE_ERROR"
-    });
+      type: error.name || "API_ERROR"
+    };
+    
+    if (error instanceof SyntaxError) {
+      errorResponse.type = "INVALID_JSON";
+      errorResponse.details = "AI returned malformed response";
+    }
+    
+    return res.status(500).json(errorResponse);
   }
 };
