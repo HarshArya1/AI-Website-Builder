@@ -96,7 +96,11 @@
           </button>
         </div>
         <div class="preview-container">
-          <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+          <iframe 
+            id="previewFrame" 
+            sandbox="allow-scripts"
+            srcdoc="<html><head><title>Preview</title></head><body><p>Content will appear here</p></body></html>"
+          ></iframe>
         </div>
       </section>
     </main>

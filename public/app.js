@@ -74,18 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Display generated code
   function displayOutput(data) {
     currentProject = {
-      html: data.htmlContent,
-      css: data.cssContent,
-      js: data.jsContent,
+      html: data.htmlContent || '',
+      css: data.cssContent || '',
+      js: data.jsContent || '',
       react: data.reactComponents || [],
       redux: data.reduxFiles || [],
-      projectId: data.projectId
+      projectId: data.projectId || ''
     };
     
     // Set code content
-    document.getElementById('htmlCode').textContent = data.htmlContent;
-    document.getElementById('cssCode').textContent = data.cssContent;
-    document.getElementById('jsCode').textContent = data.jsContent;
+    document.getElementById('htmlCode').textContent = currentProject.html;
+    document.getElementById('cssCode').textContent = currentProject.css;
+    document.getElementById('jsCode').textContent = currentProject.js;
     
     // Show output section
     outputSection.style.display = 'block';
@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <!DOCTYPE html>
       <html>
       <head>
+        <base href="about:blank">
         <style>${currentProject.css}</style>
       </head>
       <body>
@@ -110,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </html>
     `;
     
-    previewFrame.contentDocument?.write(previewDoc);
-    previewFrame.contentDocument?.close();
+    const iframe = document.getElementById('previewFrame');
+    iframe.srcdoc = previewDoc;
   }
   
   // Full preview in new window
@@ -122,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <html>
       <head>
         <title>Website Preview</title>
+        <base href="about:blank">
         <style>${currentProject.css}</style>
       </head>
       <body>
@@ -135,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Download project as ZIP
   downloadBtn.addEventListener('click', () => {
     alert('Download functionality would be implemented in production');
-    // Actual implementation would use JSZip library
   });
 
   // Load sample prompt
@@ -168,12 +169,27 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ prompt })
       });
 
+      // Handle HTTP errors
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to generate website');
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          if (errorData.details) errorMessage += `: ${errorData.details}`;
+        } catch (e) {
+          // Couldn't parse JSON error
+        }
+        throw new Error(errorMessage);
       }
 
+      // Parse JSON response
       const data = await response.json();
+      
+      // Handle API errors
+      if (data.error) {
+        throw new Error(data.error + (data.details ? `: ${data.details}` : ''));
+      }
+      
       displayOutput(data);
 
     } catch (error) {
