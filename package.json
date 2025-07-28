@@ -7,7 +7,10 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@vercel/node": "^3.0.19",
+    "express": "^5.1.0",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.19"
   }
 }

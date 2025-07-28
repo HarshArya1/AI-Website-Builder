@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Generate website
-  async function generateWebsite() {
+  generateBtn.addEventListener('click', async () => {
     const prompt = document.getElementById('userPrompt').value.trim();
     if (!prompt) {
       alert('Please enter a website description');
@@ -169,18 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok) {
-        // Handle HTTP errors
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate website');
       }
 
       const data = await response.json();
-      
-      // Check for API errors
-      if (data.error) {
-        throw new Error(data.error + (data.details ? `: ${data.details}` : ''));
-      }
-      
       displayOutput(data);
 
     } catch (error) {
@@ -188,25 +181,5 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`Error: ${error.message}`);
       hideLoading();
     }
-  }
-  
-  // Updated iframe preview
-  function updatePreview() {
-    const previewDoc = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <base href="about:blank">
-        <style>${currentProject.css}</style>
-      </head>
-      <body>
-        ${currentProject.html}
-        <script>${currentProject.js}</script>
-      </body>
-      </html>
-    `;
-    
-    const iframe = document.getElementById('previewFrame');
-    iframe.srcdoc = previewDoc;
-  }
+  });
 });
