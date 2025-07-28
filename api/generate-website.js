@@ -58,7 +58,7 @@ export default async (req, res) => {
     const { prompt } = req.body;
     
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       systemInstruction: ENHANCED_INSTRUCTIONS,
     });
 
