@@ -5,7 +5,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const ai = new GoogleGenerativeAI(GOOGLE_API_KEY);
 
 const ENHANCED_INSTRUCTIONS = `
-You are an expert AI agent specializing in automated frontend web development. Your mission is to build complete, functional, and visually stunning websites based on user requests. 
+You are an expert AI agent specializing in automated frontend web development. Your mission is to build complete, functional, and visually stunning websites based on user requests.
 
 <-- CORE MISSION -->
 1. Create professional websites using HTML, CSS, JavaScript, React, Redux and React Router
@@ -13,20 +13,6 @@ You are an expert AI agent specializing in automated frontend web development. Y
 3. Include routing for multi-page applications
 4. Use Redux for state management where needed
 5. Add animations and interactive elements
-
-<-- PROJECT STRUCTURE -->
-1. Create a main App component with routing
-2. Use functional components with React hooks
-3. Structure components in a logical hierarchy
-4. Use CSS modules for styling
-5. Implement Redux store for complex state
-
-<-- CODING STANDARDS -->
-- Use modern ES6+ syntax
-- Implement proper error handling
-- Add meaningful comments
-- Optimize for performance
-- Follow accessibility best practices
 
 <-- REQUIRED OUTPUT FORMAT -->
 Return a JSON object with:
@@ -49,35 +35,77 @@ Return a JSON object with:
   "projectStructure": "Project files created successfully"
 }
 
-<-- FINAL STEP -->
-When complete, state exactly: "WEBSITE_GENERATION_COMPLETE"
+<-- IMPORTANT RULES -->
+1. ALWAYS return valid JSON - no additional text before or after
+2. If you encounter an error, return: { "error": "description" }
+3. Use double quotes for all JSON properties
+4. Escape special characters properly
 `;
 
 export default async (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
     const { prompt } = req.body;
-    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
     const model = ai.getGenerativeModel({
       model: "gemini-1.5-flash",
       systemInstruction: ENHANCED_INSTRUCTIONS,
     });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
+    const result = await model.generateContent(`
+      Generate website based on the following prompt:
+      "${prompt}"
+      
+      IMPORTANT: Return ONLY valid JSON in the required format. No additional text.
+    `);
+    
+    const response = result.response;
     const text = response.text();
     
-    // Extract JSON from AI response
-    const jsonStart = text.indexOf('{');
-    const jsonEnd = text.lastIndexOf('}') + 1;
-    const jsonResponse = JSON.parse(text.substring(jsonStart, jsonEnd));
+    // Clean the response
+    let cleanedText = text.trim();
     
+    // Remove markdown code blocks
+    if (cleanedText.startsWith('```json')) {
+      cleanedText = cleanedText.slice(7);
+    }
+    if (cleanedText.endsWith('```')) {
+      cleanedText = cleanedText.slice(0, -3);
+    }
+    
+    // Parse the JSON response
+    const parsedResponse = JSON.parse(cleanedText);
+    
+    // Return the successful response
     res.status(200).json({
-      ...jsonResponse,
+      ...parsedResponse,
       projectId: uuidv4(),
       timestamp: new Date().toISOString()
     });
+    
   } catch (error) {
     console.error("Generation error:", error);
-    res.status(500).json({ error: "Website generation failed", details: error.message });
+    res.status(500).json({ 
+      error: "Website generation failed", 
+      details: error.message,
+      type: "JSON_PARSE_ERROR"
+    });
   }
 };

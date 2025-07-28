@@ -95,9 +95,14 @@
             <i class="fas fa-expand"></i> Full Preview
           </button>
         </div>
-        <div class="preview-container">
-          <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
-        </div>
+        <!-- Change the iframe to this: -->
+<div class="preview-container">
+  <iframe 
+    id="previewFrame" 
+    sandbox="allow-scripts"
+    srcdoc="<html><head><title>Preview</title></head><body><p>Content will appear here</p></body></html>"
+  ></iframe>
+</div>
       </section>
     </main>
 
