@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Website Builder Pro</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-magic"></i>
+          <h1>AI Website Builder Pro</h1>
+        </div>
+        <div class="theme-toggle">
+          <i class="fas fa-sun"></i>
+          <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="slider"></span>
+          </label>
+          <i class="fas fa-moon"></i>
+        </div>
+      </div>
+      <p class="tagline">Transform ideas into production-ready websites in seconds</p>
+    </header>
+
+    <main class="main-content">
+      <section class="input-section card">
+        <h2><i class="fas fa-lightbulb"></i> Describe Your Website</h2>
+        <textarea id="userPrompt" placeholder="Example: 'Create a responsive e-commerce site with product grid, shopping cart, and checkout flow using React and Redux...'"></textarea>
+        
+        <div class="button-group">
+          <button id="generateButton" class="primary">
+            <i class="fas fa-bolt"></i> Generate Website
+          </button>
+          <button id="sampleButton">
+            <i class="fas fa-star"></i> Load Sample
+          </button>
+        </div>
+      </section>
+
+      <div class="loading-container" id="loadingSection">
+        <div class="wave-loader">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <p>Generating your website...</p>
+      </div>
+
+      <section class="output-section card" id="outputSection">
+        <div class="section-header">
+          <h2><i class="fas fa-code"></i> Generated Code</h2>
+          <div class="actions">
+            <button id="downloadButton">
+              <i class="fas fa-download"></i> Download Project
+            </button>
+          </div>
+        </div>
+        
+        <div class="tabs">
+          <div class="tab active" data-tab="html">HTML</div>
+          <div class="tab" data-tab="css">CSS</div>
+          <div class="tab" data-tab="js">JavaScript</div>
+          <div class="tab" data-tab="react">React</div>
+          <div class="tab" data-tab="redux">Redux</div>
+        </div>
+        
+        <div class="code-container">
+          <div class="code-display active" id="htmlCodeContainer">
+            <pre id="htmlCode"></pre>
+          </div>
+          <div class="code-display" id="cssCodeContainer">
+            <pre id="cssCode"></pre>
+          </div>
+          <div class="code-display" id="jsCodeContainer">
+            <pre id="jsCode"></pre>
+          </div>
+          <div class="code-display" id="reactCodeContainer">
+            <pre id="reactCode"></pre>
+          </div>
+          <div class="code-display" id="reduxCodeContainer">
+            <pre id="reduxCode"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="preview-section card">
+        <div class="section-header">
+          <h2><i class="fas fa-eye"></i> Live Preview</h2>
+          <button id="previewButton" class="secondary">
+            <i class="fas fa-expand"></i> Full Preview
+          </button>
+        </div>
+        <div class="preview-container">
+          <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>AI Website Builder Pro &copy; 2024 | Powered by Google Gemini</p>
+      <div class="footer-links">
+        <a href="#"><i class="fab fa-github"></i> GitHub</a>
+        <a href="#"><i class="fas fa-book"></i> Documentation</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
